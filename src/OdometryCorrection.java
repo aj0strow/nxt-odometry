@@ -1,14 +1,21 @@
+import lejos.nxt.*;
 /* 
  * OdometryCorrection.java
  */
 
 public class OdometryCorrection extends Thread {
 	private static final long CORRECTION_PERIOD = 10;
-	private Odometer odometer;
+	
+	private final LightSensor lightSensor;
+	private final Odometer odometer;
+	
+	private boolean isLine;
+	
 
 	// constructor
-	public OdometryCorrection(Odometer odometer) {
+	public OdometryCorrection(Odometer odometer, LightSensor lightSensor) {
 		this.odometer = odometer;
+		this.lightSensor = lightSensor;
 	}
 
 	// run method (required for Thread)
@@ -17,8 +24,12 @@ public class OdometryCorrection extends Thread {
 
 		while (true) {
 			correctionStart = System.currentTimeMillis();
-
-			// put your correction code here
+			
+			isLine = lightSensor.getNormalizedLightValue() < 50;
+			
+			if (isLine) {
+				LCD.drawString("LINE", 0, 4);
+			}
 
 			// this ensure the odometry correction occurs only once every period
 			correctionEnd = System.currentTimeMillis();

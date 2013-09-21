@@ -14,7 +14,8 @@ public class Lab2 {
 		// some objects that need to be instantiated
 		Odometer odometer = new Odometer(LEFT_MOTOR, RIGHT_MOTOR, WHEEL_RADIUS, WHEEL_SEPARATION);
 		OdometryDisplay odometryDisplay = new OdometryDisplay(odometer);
-		OdometryCorrection odometryCorrection = new OdometryCorrection(odometer);
+		LightSensor lightSensor = new LightSensor(SensorPort.S2);
+		OdometryCorrection odometryCorrection = new OdometryCorrection(odometer, lightSensor);
 		final SquareDriver driver = new SquareDriver(LEFT_MOTOR, RIGHT_MOTOR, WHEEL_RADIUS, WHEEL_SEPARATION);
 
 		do {
