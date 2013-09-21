@@ -9,7 +9,6 @@ public class SquareDriver {
 	
 	private final NXTRegulatedMotor leftMotor, rightMotor;
 	
-	
 	// right and left radius are wheel radii, separation is the distance
 	// between the middle of the left wheel to the middle of the right wheel. 
 	private final double radius, separation;
@@ -35,18 +34,22 @@ public class SquareDriver {
 			// there is nothing to be done here because it is not expected that
 			// the odometer will be interrupted by another thread
 		}
-
-		for (int i = 0; i < 4; i++) {
-			// drive forward two tiles
-			leftMotor.setSpeed(FORWARD_SPEED);
-			rightMotor.setSpeed(FORWARD_SPEED);
-
-			leftMotor.rotate(convertDistance(radius, 60.96), true);
-			rightMotor.rotate(convertDistance(radius, 60.96), false);
-
-			// turn 90 degrees clockwise
+		
+		for (int lap = 0; lap < 10; lap++) squareLap();		
+	}
+	
+	private void squareLap() {
+		for (int turn = 0; turn < 4; turn++) {
+			forward();
 			rotate(90.0);
 		}
+	}
+	
+	private void forward() {
+		leftMotor.setSpeed(FORWARD_SPEED);
+		rightMotor.setSpeed(FORWARD_SPEED);
+		leftMotor.rotate(convertDistance(radius, 60.96), true);
+		rightMotor.rotate(convertDistance(radius, 60.96), false);
 	}
 	
 	private void rotate(double degrees) {
