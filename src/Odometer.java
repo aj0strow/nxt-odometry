@@ -17,7 +17,7 @@ public class Odometer extends Thread {
 	private double radius, separation;
 	
 	// the previous tacho meter counts
-	private double leftCount, rightCount;	
+	private int leftCount, rightCount;	
 	
 	// motors
 	private final NXTRegulatedMotor leftMotor, rightMotor;
@@ -50,17 +50,17 @@ public class Odometer extends Thread {
 		while (true) {
 			updateStart = System.currentTimeMillis();
 			
-			double newLeftCount = leftMotor.getTachoCount();
-			double newRightCount = rightMotor.getTachoCount();
+			int newLeftCount = leftMotor.getTachoCount();
+			int newRightCount = rightMotor.getTachoCount();
 						
-			double deltaLeftCount = newLeftCount - leftCount;
-			double deltaRightCount = newRightCount - rightCount;
+			int deltaLeftCount = newLeftCount - leftCount;
+			int deltaRightCount = newRightCount - rightCount;
 			
 			leftCount = newLeftCount;
 			rightCount = newRightCount;
 			
-			double leftArcDistance = Math.toRadians(deltaLeftCount) * radius;
-			double rightArcDistance = Math.toRadians(deltaRightCount) * radius;
+			double leftArcDistance = arcDistance(deltaLeftCount);
+			double rightArcDistance = arcDistance(deltaRightCount);
 			
 			double deltaTheta = (leftArcDistance - rightArcDistance) / separation;
 			double displacement = (leftArcDistance + rightArcDistance) / 2.0;
@@ -88,20 +88,6 @@ public class Odometer extends Thread {
 		}
 	}
 
-	// accessors
-	public void getPosition(double[] position, boolean[] update) {
-		if (update[0]) position[0] = getX();
-		if (update[1]) position[1] = getY();
-		if (update[2]) position[2] = getTheta();
-	}
-	
-	// mutators
-	public void setPosition(double[] position, boolean[] update) {
-		if (update[0]) setX(position[0]);
-		if (update[1]) setY(position[1]);
-		if (update[2]) setTheta(position[2]);
-	}
-	
 	public double getX() {
 		double result;
 		synchronized (lock) { result = x; }
@@ -130,5 +116,9 @@ public class Odometer extends Thread {
 
 	public void setTheta(double theta) {
 		synchronized (lock) { this.theta = theta; }
+	}
+	
+	private double arcDistance(int deltaTachometerCount) {
+		return Math.toRadians(deltaTachometerCount) * radius;
 	}
 }

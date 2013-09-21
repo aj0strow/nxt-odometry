@@ -15,7 +15,6 @@ public class OdometryDisplay extends Thread {
 	// run method (required for Thread)
 	public void run() {
 		long displayStart, displayEnd;
-		double[] position = new double[3];
 
 		// clear the display once
 		LCD.clearDisplay();
@@ -28,14 +27,10 @@ public class OdometryDisplay extends Thread {
 			LCD.drawString("Y:              ", 0, 1);
 			LCD.drawString("T:              ", 0, 2);
 
-			// get the odometry information
-			odometer.getPosition(position, new boolean[] { true, true, true });
-
-			// display odometry information
-			for (int i = 0; i < 3; i++) {
-				LCD.drawString(formattedDoubleToString(position[i], 2), 3, i);
-			}
-
+			LCD.drawString(format(odometer.getX(), 2), 3, 0);
+			LCD.drawString(format(odometer.getY(), 2), 3, 1);
+			LCD.drawString(format(Math.toDegrees(odometer.getTheta()), 2), 3, 2);
+			
 			// throttle the OdometryDisplay
 			displayEnd = System.currentTimeMillis();
 			if (displayEnd - displayStart < DISPLAY_PERIOD) {
@@ -50,7 +45,7 @@ public class OdometryDisplay extends Thread {
 		}
 	}
 	
-	private static String formattedDoubleToString(double x, int places) {
+	private static String format(double x, int places) {
 		String result = "";
 		String stack = "";
 		long t;
@@ -87,7 +82,6 @@ public class OdometryDisplay extends Thread {
 				result += Long.toString((long)x);
 			}
 		}
-		
 		return result;
 	}
 
