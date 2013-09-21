@@ -6,16 +6,30 @@ import lejos.nxt.*;
 public class SquareDriver {
 	private static final int FORWARD_SPEED = 250;
 	private static final int ROTATE_SPEED = 150;
-
-	public static void drive(NXTRegulatedMotor leftMotor, NXTRegulatedMotor rightMotor,
-			double leftRadius, double rightRadius, double width) {
-		// reset the motors
+	
+	private final NXTRegulatedMotor leftMotor, rightMotor;
+	
+	
+	// right and left radius are wheel radii, separation is the distance
+	// between the middle of the left wheel to the middle of the right wheel. 
+	private final double leftRadius, rightRadius, separation;
+	
+	public SquareDriver(NXTRegulatedMotor leftMotor, NXTRegulatedMotor rightMotor, 
+			double leftRadius, double rightRadius, double separation) {
+		this.leftMotor = leftMotor;
+		this.rightMotor = rightMotor;
+		this.leftRadius = leftRadius;
+		this.rightRadius = rightRadius;
+		this.separation = separation;
+	}
+	
+	public void drive() {
 		for (NXTRegulatedMotor motor : new NXTRegulatedMotor[] { leftMotor, rightMotor }) {
 			motor.stop();
 			motor.setAcceleration(3000);
 		}
-
-		// wait 5 seconds
+		
+		// wait 2 seconds
 		try {
 			Thread.sleep(2000);
 		} catch (InterruptedException e) {
@@ -32,19 +46,23 @@ public class SquareDriver {
 			rightMotor.rotate(convertDistance(rightRadius, 60.96), false);
 
 			// turn 90 degrees clockwise
-			leftMotor.setSpeed(ROTATE_SPEED);
-			rightMotor.setSpeed(ROTATE_SPEED);
-
-			leftMotor.rotate(convertAngle(leftRadius, width, 90.0), true);
-			rightMotor.rotate(-convertAngle(rightRadius, width, 90.0), false);
+			rotate(90.0);
 		}
 	}
-
-	private static int convertDistance(double radius, double distance) {
-		return (int) ((180.0 * distance) / (Math.PI * radius));
+	
+	private void rotate(double degrees) {
+		leftMotor.setSpeed(ROTATE_SPEED);
+		rightMotor.setSpeed(ROTATE_SPEED);
+		leftMotor.rotate(convertAngle(leftRadius, separation, degrees), true);
+		rightMotor.rotate(-convertAngle(rightRadius, separation, degrees), false);
+		
 	}
 
-	private static int convertAngle(double radius, double width, double angle) {
+	private int convertDistance(double radius, double distance) {
+		return (int) ((180.0 * distance) / (Math.PI * radius));
+	}
+	
+	private int convertAngle(double radius, double width, double angle) {
 		return convertDistance(radius, Math.PI * width * angle / 360.0);
 	}
 }

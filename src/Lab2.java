@@ -4,13 +4,18 @@
 import lejos.nxt.*;
 
 public class Lab2 {
+	private static NXTRegulatedMotor LEFT_MOTOR = Motor.A, RIGHT_MOTOR = Motor.B;
+	private static double WHEEL_RADIUS = 2.8;
+	private static double WHEEL_SEPARATION = 15.8;
+	
 	public static void main(String[] args) {
 		int buttonChoice;
 
 		// some objects that need to be instantiated
-		Odometer odometer = new Odometer();
+		Odometer odometer = new Odometer(LEFT_MOTOR, RIGHT_MOTOR, WHEEL_RADIUS, WHEEL_SEPARATION);
 		OdometryDisplay odometryDisplay = new OdometryDisplay(odometer);
 		OdometryCorrection odometryCorrection = new OdometryCorrection(odometer);
+		final SquareDriver driver = new SquareDriver(LEFT_MOTOR, RIGHT_MOTOR, WHEEL_RADIUS, WHEEL_RADIUS, WHEEL_SEPARATION);
 
 		do {
 			// clear the display
@@ -23,7 +28,7 @@ public class Lab2 {
 			LCD.drawString("motors | in a   ", 0, 3);
 			LCD.drawString("       | square ", 0, 4);
 
-			buttonChoice = Button.waitForPress();
+			buttonChoice = Button.waitForAnyPress();
 		} while (buttonChoice != Button.ID_LEFT
 				&& buttonChoice != Button.ID_RIGHT);
 
@@ -46,12 +51,12 @@ public class Lab2 {
 			// spawn a new Thread to avoid SquareDriver.drive() from blocking
 			(new Thread() {
 				public void run() {
-					SquareDriver.drive(Motor.A, Motor.B, 2.8, 2.8, 15.24);
+					driver.drive();
 				}
 			}).start();
 		}
 		
-		while (Button.waitForPress() != Button.ID_ESCAPE);
+		while (Button.waitForAnyPress() != Button.ID_ESCAPE);
 		System.exit(0);
 	}
 }
