@@ -100,6 +100,7 @@ public class Odometer extends Thread {
 		return result;
 	}
 
+	// 0 <= theta < 2π
 	public double getTheta() {
 		double result;
 		synchronized (lock) { result = theta; }
@@ -115,6 +116,8 @@ public class Odometer extends Thread {
 	}
 
 	public void setTheta(double theta) {
+		while (theta >= 2 * Math.PI) theta -= 2 * Math.PI;
+		while (theta < 0) theta += 2 * Math.PI;
 		synchronized (lock) { this.theta = theta; }
 	}
 	

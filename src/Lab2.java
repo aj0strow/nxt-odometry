@@ -34,7 +34,7 @@ public class Lab2 {
 				&& buttonChoice != Button.ID_RIGHT);
 
 		if (buttonChoice == Button.ID_LEFT) {
-			for (NXTRegulatedMotor motor : new NXTRegulatedMotor[] { Motor.A, Motor.B, Motor.C }) {
+			for (NXTRegulatedMotor motor : new NXTRegulatedMotor[] { LEFT_MOTOR, RIGHT_MOTOR }) {
 				motor.forward();
 				motor.flt();
 			}
@@ -47,7 +47,7 @@ public class Lab2 {
 			// odometry correction
 			odometer.start();
 			odometryDisplay.start();
-			// odometryCorrection.start();
+			odometryCorrection.start();
 
 			// spawn a new Thread to avoid SquareDriver.drive() from blocking
 			(new Thread() {
