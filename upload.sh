@@ -1,2 +1,2 @@
 source compile.sh;
-nxjupload -r Lab1.nxj;
+nxjupload -r Lab2.nxj;
