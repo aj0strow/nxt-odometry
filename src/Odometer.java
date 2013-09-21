@@ -27,7 +27,7 @@ public class Odometer extends Thread {
 
 	// default constructor
 	public Odometer(NXTRegulatedMotor leftMotor, NXTRegulatedMotor rightMotor, double radius, double separation) {
-		this(leftMotor, rightMotor, radius, separation, 0.0, 0.0, 90.0);
+		this(leftMotor, rightMotor, radius, separation, 0.0, 0.0, 0.0);
 	}
 	
 	// pass in the start position (x, y) and angle (theta)
@@ -59,8 +59,8 @@ public class Odometer extends Thread {
 			leftCount = newLeftCount;
 			rightCount = newRightCount;
 			
-			double leftArcDistance = deltaLeftCount * radius;
-			double rightArcDistance = deltaRightCount * radius;
+			double leftArcDistance = Math.toRadians(deltaLeftCount) * radius;
+			double rightArcDistance = Math.toRadians(deltaRightCount) * radius;
 			
 			double deltaTheta = (leftArcDistance - rightArcDistance) / separation;
 			double displacement = (leftArcDistance + rightArcDistance) / 2.0;

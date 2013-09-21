@@ -6,7 +6,7 @@ import lejos.nxt.*;
 public class Lab2 {
 	private static NXTRegulatedMotor LEFT_MOTOR = Motor.A, RIGHT_MOTOR = Motor.B;
 	private static double WHEEL_RADIUS = 2.8;
-	private static double WHEEL_SEPARATION = 15.8;
+	private static double WHEEL_SEPARATION = 16.0;
 	
 	public static void main(String[] args) {
 		int buttonChoice;
@@ -15,7 +15,7 @@ public class Lab2 {
 		Odometer odometer = new Odometer(LEFT_MOTOR, RIGHT_MOTOR, WHEEL_RADIUS, WHEEL_SEPARATION);
 		OdometryDisplay odometryDisplay = new OdometryDisplay(odometer);
 		OdometryCorrection odometryCorrection = new OdometryCorrection(odometer);
-		final SquareDriver driver = new SquareDriver(LEFT_MOTOR, RIGHT_MOTOR, WHEEL_RADIUS, WHEEL_RADIUS, WHEEL_SEPARATION);
+		final SquareDriver driver = new SquareDriver(LEFT_MOTOR, RIGHT_MOTOR, WHEEL_RADIUS, WHEEL_SEPARATION);
 
 		do {
 			// clear the display
