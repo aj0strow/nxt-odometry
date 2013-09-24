@@ -5,8 +5,13 @@ import lejos.nxt.*;
 
 public class OdometryCorrection extends Thread {
 	private static final long CORRECTION_PERIOD = 10;
-	private static final int LIGHT_THRESHOLD = 400;
-	private static final double LINE_SEPARATION = 30.0;
+	private static final int LIGHT_THRESHOLD = 400;	
+	
+	private static final double CLOSE_LINE = 15.0;
+	private static final double FAR_LINE = 45.0;
+	private static final double LINE_SEPARATION = FAR_LINE - CLOSE_LINE;
+	
+	private static final double SENSOR_DISTANCE = 11.6;
 	
 	private final LightSensor lightSensor;
 	private final Odometer odometer;
@@ -36,7 +41,7 @@ public class OdometryCorrection extends Thread {
 				if (isLine && !wasLine) {
 					Sound.twoBeeps();
 					savePosition();
-					if (previous != null && wasStraightPath()) correctOdometer();
+					correctOdometer();
 				}
 				wasLine = isLine;
 			}
@@ -70,29 +75,37 @@ public class OdometryCorrection extends Thread {
 		if (current != null) previous = current.clone();
 		current = odometer.getPosition();
 	}
-	
+		
 	private void correctOdometer() {
-		double x, y, theta = averageTheta();
+		double x, y, theta = current[2];
 
 		if (approximately(0, theta)) {
-			x = previous[0] + LINE_SEPARATION;
-			y = previous[1] + deviationDistance(0.0);
+			x = outboundLine() + SENSOR_DISTANCE;
+			y = deviationDisplacement(1, 0.0);
 		} else if (approximately(Math.PI / 2, theta)) {
-			x = previous[0] +  deviationDistance(Math.PI / 2);
-			y = previous[1] - LINE_SEPARATION;
+			x = deviationDisplacement(0, Math.PI / 2);
+			y = - outboundLine() - SENSOR_DISTANCE;
 		} else if (approximately(Math.PI, theta)) {
-  			x = previous[0] - LINE_SEPARATION;
-  			y = previous[1] + deviationDistance(Math.PI);
+  			x = inboundLine() - SENSOR_DISTANCE;
+  			y = deviationDisplacement(1, Math.PI);
   		} else {
-  			x = previous[0] - deviationDistance(3 * Math.PI / 2);
-  			y = previous[1] + LINE_SEPARATION;
+			x = deviationDisplacement(0, 3 * Math.PI / 2);
+			y = - inboundLine() + SENSOR_DISTANCE;
   		}
 		
 		double dx = x - current[0];
 		double dy = y - current[1];
 		
-		odometer.setX(odometer.getX() + dx);
-		odometer.setY(odometer.getY() + dy);
+		if (dx != 0) odometer.setX(odometer.getX() + dx);
+		if (dy != 0) odometer.setY(odometer.getY() + dy);
+	}
+	
+	private double deviationDisplacement(int xOrY, double expected) {
+		if (isFirstLine() || !wasStraightPath()) {
+			return current[xOrY];
+		} else {
+			return previous[xOrY] + deviationDistance(expected);
+		}
 	}
 	
 	private double deviationDistance(double expected) {
@@ -113,5 +126,17 @@ public class OdometryCorrection extends Thread {
 			
 	private boolean approximately(double target, double actual) {
 		return Math.abs(target - actual) < Math.PI / 4;
+	}
+	
+	private double outboundLine() {
+		return isFirstLine() ? CLOSE_LINE : FAR_LINE;
+	}
+	
+	private double inboundLine() {
+		return isFirstLine() ? FAR_LINE : CLOSE_LINE;
+	}
+	
+	private boolean isFirstLine() {
+		return previous == null;
 	}
 }
