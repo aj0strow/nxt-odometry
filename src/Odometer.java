@@ -87,6 +87,14 @@ public class Odometer extends Thread {
 			}
 		}
 	}
+	
+	public double[] getPosition() {
+		double[] position;
+		synchronized (lock) {
+			position = new double[]{ x, y, theta };
+		}
+		return position;
+	}
 
 	public double getX() {
 		double result;

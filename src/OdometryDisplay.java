@@ -29,7 +29,7 @@ public class OdometryDisplay extends Thread {
 
 			LCD.drawString(format(odometer.getX(), 2), 3, 0);
 			LCD.drawString(format(odometer.getY(), 2), 3, 1);
-			LCD.drawString(format(Math.toDegrees(odometer.getTheta()), 2), 3, 2);
+			LCD.drawString(format(odometer.getTheta(), 2), 3, 2);
 			
 			// throttle the OdometryDisplay
 			displayEnd = System.currentTimeMillis();

@@ -6,16 +6,16 @@ import lejos.nxt.*;
 public class OdometryCorrection extends Thread {
 	private static final long CORRECTION_PERIOD = 10;
 	private static final int LIGHT_THRESHOLD = 400;
-	
-	private static final int[] LINE_DISPLACEMENTS = { 15, 45, 75 };
-	
-	// distance from sensor to actual coordinates from odometer
-	private static final double SENSOR_DISTANCE = 11.6;
+	private static final double LINE_SEPARATION = 30.0;
 	
 	private final LightSensor lightSensor;
 	private final Odometer odometer;
 	
-	boolean wasLine;
+	private boolean frozen = false;
+	private boolean wasLine = false;
+	// x, y, theta of last line crossing
+	private double[] previous;
+	private double[] current;
 	
 	// constructor
 	public OdometryCorrection(Odometer odometer, LightSensor lightSensor) {
@@ -25,15 +25,22 @@ public class OdometryCorrection extends Thread {
 
 	// run method (required for Thread)
 	public void run() {
+		Sound.setVolume(Sound.VOL_MAX);
 		long correctionStart, correctionEnd;
 
 		while (true) {
 			correctionStart = System.currentTimeMillis();
 			
-			boolean isLine = lightSensor.readNormalizedValue() < LIGHT_THRESHOLD;
-			if (isLine && !wasLine) applyCorrection();
-			wasLine = isLine;
-
+			if (!frozen) {
+				boolean isLine = lightSensor.readNormalizedValue() < LIGHT_THRESHOLD;
+				if (isLine && !wasLine) {
+					Sound.twoBeeps();
+					savePosition();
+					if (previous != null && wasStraightPath()) correctOdometer();
+				}
+				wasLine = isLine;
+			}
+			
 			// this ensure the odometry correction occurs only once every period
 			correctionEnd = System.currentTimeMillis();
 			if (correctionEnd - correctionStart < CORRECTION_PERIOD) {
@@ -49,50 +56,59 @@ public class OdometryCorrection extends Thread {
 		}
 	}
 	
-	private void applyCorrection() {
-		double theta = odometer.getTheta();
-				
+	public void freeze() {
+		frozen = true;
+	}
+	
+	public void unfreeze() {
+		previous = null;
+		current = null;
+		frozen = false;
+	}
+	
+	private void savePosition() {
+		if (current != null) previous = current.clone();
+		current = odometer.getPosition();
+	}
+	
+	private void correctOdometer() {
+		double x, y, theta = averageTheta();
+
 		if (approximately(0, theta)) {
-			double x = odometer.getX();
-			if (x < LINE_DISPLACEMENTS[1]) {
-				x = LINE_DISPLACEMENTS[0] + SENSOR_DISTANCE;
-			} else if (x < LINE_DISPLACEMENTS[2]) {
-				x = LINE_DISPLACEMENTS[1] + SENSOR_DISTANCE;
-			} else {
-				x = LINE_DISPLACEMENTS[2] + SENSOR_DISTANCE;
-			}
-			odometer.setX(x);
+			x = previous[0] + LINE_SEPARATION;
+			y = previous[1] + deviationDistance(0.0);
 		} else if (approximately(Math.PI / 2, theta)) {
-			double y = odometer.getY();
-			if (y < LINE_DISPLACEMENTS[1]) {
-				y = LINE_DISPLACEMENTS[0] + SENSOR_DISTANCE;
-			} else if (y < LINE_DISPLACEMENTS[2]) {
-				y = LINE_DISPLACEMENTS[1] + SENSOR_DISTANCE;
-			} else {
-				y = LINE_DISPLACEMENTS[2] + SENSOR_DISTANCE;
-			}
-			odometer.setY(y);
+			x = previous[0] +  deviationDistance(Math.PI / 2);
+			y = previous[1] - LINE_SEPARATION;
 		} else if (approximately(Math.PI, theta)) {
-			double x = odometer.getX();
-			if (x < LINE_DISPLACEMENTS[0]) {
-				x = LINE_DISPLACEMENTS[0] - SENSOR_DISTANCE;
-			} else if (x < LINE_DISPLACEMENTS[1]) {
-				x = LINE_DISPLACEMENTS[1] - SENSOR_DISTANCE;
-			} else {
-				x = LINE_DISPLACEMENTS[2] - SENSOR_DISTANCE;
-			}
-			odometer.setX(x);
-		} else {
-			double y = odometer.getY();
-			if (y < LINE_DISPLACEMENTS[0]) {
-				y = LINE_DISPLACEMENTS[0] - SENSOR_DISTANCE;
-			} else if (y < LINE_DISPLACEMENTS[1]) {
-				y = LINE_DISPLACEMENTS[1] - SENSOR_DISTANCE;
-			} else {
-				y = LINE_DISPLACEMENTS[2] - SENSOR_DISTANCE;
-			}
-			odometer.setY(y);
+  			x = previous[0] - LINE_SEPARATION;
+  			y = previous[1] + deviationDistance(Math.PI);
+  		} else {
+  			x = previous[0] - deviationDistance(3 * Math.PI / 2);
+  			y = previous[1] + LINE_SEPARATION;
+  		}
+		
+		double dx = x - current[0];
+		double dy = y - current[1];
+		
+		odometer.setX(odometer.getX() + dx);
+		odometer.setY(odometer.getY() + dy);
+	}
+	
+	private double deviationDistance(double expected) {
+		return Math.tan(averageTheta() - expected) * LINE_SEPARATION;
+	}
+	
+	private double averageTheta() {
+		double angleSum = previous[2] + current[2];
+		if (Math.abs(previous[2] - current[2]) > Math.PI) {
+			angleSum += Math.PI * 2;
 		}
+		return angleSum / 2.0;
+	}
+	
+	private boolean wasStraightPath() {
+		return Math.abs(previous[2] - current[2]) < (Math.PI * 2) / 1500.0;
 	}
 			
 	private boolean approximately(double target, double actual) {

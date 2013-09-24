@@ -5,8 +5,8 @@ import lejos.nxt.*;
 
 public class SquareDriver {
 	private static final int ACCELERATION = 3000;
-	private static final int FORWARD_SPEED = 150;
-	private static final int ROTATE_SPEED = 100;
+	private static final int FORWARD_SPEED = 250;
+	private static final int ROTATE_SPEED = 150;
 	
 	private final NXTRegulatedMotor leftMotor, rightMotor;
 	
@@ -14,12 +14,15 @@ public class SquareDriver {
 	// between the middle of the left wheel to the middle of the right wheel. 
 	private final double radius, separation;
 	
+	private OdometryCorrection correction;
+	
 	public SquareDriver(NXTRegulatedMotor leftMotor, NXTRegulatedMotor rightMotor, 
-			double radius, double separation) {
+			double radius, double separation, OdometryCorrection correction) {
 		this.leftMotor = leftMotor;
 		this.rightMotor = rightMotor;
 		this.radius = radius;
 		this.separation = separation;
+		this.correction = correction;
 	}
 	
 	public void drive() {
@@ -35,7 +38,9 @@ public class SquareDriver {
 		
 		for (int turn = 0; turn < 4; turn++) {
 			forward();
+			correction.freeze();
 			rotate(90.0);
+			correction.unfreeze();
 		}
 	}
 	
@@ -58,7 +63,6 @@ public class SquareDriver {
 		rightMotor.setSpeed(ROTATE_SPEED);
 		leftMotor.rotate(convertAngle(degrees), true);
 		rightMotor.rotate(-convertAngle(degrees), false);
-		
 	}
 
 	private int convertDistance(double distance) {
