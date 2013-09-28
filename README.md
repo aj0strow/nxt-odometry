@@ -1,4 +1,4 @@
-nxj-odometry
+nxt-odometry
 ==================
 
 > Lab 2 of ECSE 211 at McGill, by AJ Ostrow and Vitaliy Kuzmin, Fall 2013. 
